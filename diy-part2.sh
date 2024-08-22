@@ -11,7 +11,7 @@
 
 #Change the default WAN to eth0
 sed -i "s/net\/eth1/net\/eth0/g" package/base-files/files/etc/board.d/99-default_network
-sed -i "s/wan 'eth1'/wan 'eth2'/g" package/base-files/files/etc/board.d/99-default_network
+sed -i "s/wan 'eth1'/wan 'eth0'/g" package/base-files/files/etc/board.d/99-default_network
 sed -i "s/lan 'eth0'/lan 'eth1'/g" package/base-files/files/etc/board.d/99-default_network
 
 # Modify default IP
