@@ -13,8 +13,8 @@
 name: Update Checker
 
 env:
-  REPO_URL: https://github.com/Lienol/openwrt.git
-  REPO_BRANCH: employ
+  REPO_URL: https://github.com/immortalwrt/immortalwrt.gitt
+  REPO_BRANCH: openwrt
 
 on:
   workflow_dispatch:
