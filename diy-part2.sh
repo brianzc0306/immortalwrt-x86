@@ -25,4 +25,4 @@ sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/M
 #rm -rf feeds/packages/lang/golang
 #git clone https://github.com/sbwml/packages_lang_golang -b 22.x feeds/packages/lang/golang
 git clone https://github.com/gdy666/luci-app-lucky.git package/luci-app-lucky
-git clone https://github.com/morytyann/OpenWrt-mihomo.git package/luci-app-mihomo
+#git clone https://github.com/morytyann/OpenWrt-mihomo.git package/luci-app-mihomo
