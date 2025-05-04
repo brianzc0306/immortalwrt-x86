@@ -21,4 +21,5 @@ sed -i 's/192.168.1.1/192.168.0.1/g' package/base-files/files/bin/config_generat
 #sed -i 's/luci-theme-bootstrap/luci-theme-argon/g' feeds/luci/collections/luci/Makefile
 
 # Modify hostname
-#git clone https://github.com/gdy666/luci-app-lucky.git package/luci-app-lucky
+echo 'src-git lucky https://github.com/gdy666/luci-app-lucky.git' >>feeds.conf.default
+echo 'src-git nikki https://github.com/nikkinikki-org/OpenWrt-nikki.git;main' >>feeds.conf.default
