@@ -10,7 +10,7 @@
 # See /LICENSE for more information.
 #
 
-name: OpenWrt-homeproxy
+name: immortalwrt-homeproxy
 
 on:
   repository_dispatch:
@@ -44,7 +44,7 @@ jobs:
       with:
         path: |
           /workdir/ccache
-          openwrt/dl
+          immortalwrt/dl
         key: ${{ runner.os }}-${{ hashFiles('$FEEDS_CONF', '$CONFIG_FILE') }}
 
     - name: Setup environment
