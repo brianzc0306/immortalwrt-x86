@@ -109,14 +109,14 @@ jobs:
 
     - name: Upload artifacts
       if: env.UPLOAD_FIRMWARE == 'true' && success() && !cancelled()
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@main
       with:
         name: OpenWrt-Firmware${{ env.DEVICE_NAME }}${{ env.FILE_DATE }}
         path: ${{ env.FIRMWARE_DIR }}/*
 
     - name: Create release
       if: env.UPLOAD_RELEASE == 'true' && success() && !cancelled()
-      uses: softprops/action-gh-release@v1
+      uses: softprops/action-gh-release@master
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
@@ -125,7 +125,7 @@ jobs:
 
     - name: Cleanup
       if: always()
-      uses: Mattraks/delete-workflow-runs@master
+      uses: Mattraks/delete-workflow-runs@main
       with:
         retain_days: 3
         keep_minimum_runs: 2
