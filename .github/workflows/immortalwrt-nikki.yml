@@ -35,10 +35,10 @@ jobs:
     runs-on: ubuntu-22.04
 
     steps:
-    - name: Checkout
+    - name: Checkout repository
       uses: actions/checkout@v4
 
-    - name: Initialization environment
+    - name: Initialize environment
       env:
         DEBIAN_FRONTEND: noninteractive
       run: |
@@ -80,13 +80,13 @@ jobs:
         cd openwrt
         $GITHUB_WORKSPACE/$DIY_P1_SH
 
-    - name: Update feeds
-      run: cd openwrt && ./scripts/feeds update -a
+    - name: Update and install feeds
+      run: |
+        cd openwrt
+        ./scripts/feeds update -a
+        ./scripts/feeds install -a
 
-    - name: Install feeds
-      run: cd openwrt && ./scripts/feeds install -a
-
-    - name: Apply device configuration
+    - name: Load device configuration
       run: |
         [ -e files ] && mv files openwrt/files
         [ -e $CONFIG_FILE ] && mv $CONFIG_FILE openwrt/.config
@@ -103,7 +103,7 @@ jobs:
         find dl -size -1024c -exec ls -l {} \; || true
         find dl -size -1024c -exec rm -f {} \; || true
 
-    - name: Build firmware (CCache optimized)
+    - name: Compile firmware (CCache optimized)
       id: compile
       env:
         CCACHE_DIR: ${{ env.CCACHE_DIR }}
@@ -121,7 +121,7 @@ jobs:
       if: (!cancelled())
       run: df -hT
 
-    - name: Upload binaries
+    - name: Upload binaries (Optional)
       uses: actions/upload-artifact@v4
       if: steps.compile.outputs.status == 'success' && env.UPLOAD_BIN_DIR == 'true'
       with:
@@ -152,7 +152,7 @@ jobs:
         touch release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
-    - name: Publish release
+    - name: Publish GitHub release
       uses: softprops/action-gh-release@v2
       if: steps.tag.outputs.status == 'success' && !cancelled()
       env:
@@ -168,11 +168,11 @@ jobs:
         retain_days: 0
         keep_minimum_runs: 2
 
-    - name: Prune old releases
-      uses: dev-drprasad/delete-older-releases@v2
+    - name: Prune old releases (Main Branch)
+      uses: c-hive/gha-remove-old-releases@main
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       with:
-        keep_latest: 3
-        delete_tags: true
+        keep-latest: 3
+        delete-tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
