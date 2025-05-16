@@ -148,7 +148,7 @@ jobs:
       id: tag
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
       run: |
-        echo "release_tag=immortalwrt-nikki-$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+        echo "release_tag=immortalwrt-nikki-$(date +\"%Y.%m.%d-%H%M\")" >> $GITHUB_OUTPUT
         touch release.txt
         echo "status=success" >> $GITHUB_OUTPUT
 
@@ -176,6 +176,7 @@ jobs:
         delete_tags: true
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
 
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
