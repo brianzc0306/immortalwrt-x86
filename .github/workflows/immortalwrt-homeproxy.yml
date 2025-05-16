@@ -27,6 +27,8 @@ env:
   UPLOAD_FIRMWARE: true
   UPLOAD_RELEASE: true
   TZ: Asia/Shanghai
+  CCACHE_DIR: /workdir/ccache
+  CCACHE_MAXSIZE: 2G
 
 jobs:
   build:
@@ -50,11 +52,25 @@ jobs:
         sudo mkdir -p /workdir
         sudo chown $USER:$GROUPS /workdir
 
+    - name: Prepare ccache directory
+      run: |
+        mkdir -p $CCACHE_DIR
+        echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
+
+    - name: Cache dl and ccache
+      uses: actions/cache@v3
+      with:
+        path: |
+          /workdir/openwrt/dl
+          ${{ env.CCACHE_DIR }}
+        key: ${{ runner.os }}-immortalwrt-${{ hashFiles('${{ env.FEEDS_CONF }}', '${{ env.CONFIG_FILE }}') }}
+        restore-keys: |
+          ${{ runner.os }}-immortalwrt-
+
     - name: Clone source code
       working-directory: /workdir
       run: |
-        df -hT $PWD
-        git clone $REPO_URL -b $REPO_BRANCH openwrt
+        git clone --depth 1 $REPO_URL -b $REPO_BRANCH openwrt
         ln -sf /workdir/openwrt $GITHUB_WORKSPACE/openwrt
 
     - name: Load custom feeds
@@ -83,16 +99,19 @@ jobs:
       run: |
         cd openwrt
         make defconfig
-        make download -j8
+        make download -j$(nproc)
         find dl -size -1024c -exec ls -l {} \;
         find dl -size -1024c -exec rm -f {} \;
 
     - name: Compile the firmware
       id: compile
+      env:
+        CCACHE_DIR: ${{ env.CCACHE_DIR }}
+        CCACHE_MAXSIZE: ${{ env.CCACHE_MAXSIZE }}
       run: |
         cd openwrt
         echo -e "$(nproc) thread compile"
-        make -j$(nproc) || make -j1 || make -j1 V=s
+        make -j$(nproc) CCACHE=1 || make -j1 CCACHE=1 || make -j1 V=s CCACHE=1
         echo "status=success" >> $GITHUB_OUTPUT
         grep '^CONFIG_TARGET.*DEVICE.*=y' .config | sed -r 's/.*DEVICE_(.*)=y/\1/' > DEVICE_NAME
         [ -s DEVICE_NAME ] && echo "DEVICE_NAME=_$(cat DEVICE_NAME)" >> $GITHUB_ENV
