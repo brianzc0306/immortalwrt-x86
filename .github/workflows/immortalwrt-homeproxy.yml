@@ -58,7 +58,7 @@ jobs:
         echo "CCACHE_DIR=$CCACHE_DIR" >> $GITHUB_ENV
 
     - name: Cache dl and ccache
-      uses: actions/cache@v3
+      uses: actions/cache@main
       with:
         path: |
           /workdir/openwrt/dl
