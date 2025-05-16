@@ -29,6 +29,7 @@ env:
   TZ: Asia/Shanghai
   CCACHE_DIR: /workdir/ccache
   CCACHE_MAXSIZE: 2G
+  KEEP_RELEASES: 3  # 控制保留的最新版本数量
 
 jobs:
   build:
@@ -168,11 +169,56 @@ jobs:
         retain_days: 0
         keep_minimum_runs: 2
 
-    - name: Prune old releases (Main Branch)
-      uses: c-hive/gha-remove-old-releases@main
+    - name: Delete old releases (Native API)
       if: env.UPLOAD_RELEASE == 'true' && !cancelled()
-      with:
-        keep-latest: 3
-        delete-tags: true
+      uses: actions/github-script@v6
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        KEEP: ${{ env.KEEP_RELEASES }}
+      with:
+        script: |
+          try {
+            // 获取所有Release
+            const { data: releases } = await github.rest.repos.listReleases({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              per_page: 100
+            });
+
+            // 过滤草稿和预发布版本
+            const activeReleases = releases
+              .filter(release => !release.draft && !release.prerelease)
+              .sort((a, b) => new Date(b.published_at) - new Date(a.published_at));
+
+            // 计算需要删除的旧版本
+            const toDelete = activeReleases.slice(env.KEEP);
+
+            // 删除旧Release及其标签
+            for (const release of toDelete) {
+              console.log(`🗑️ Deleting release: ${release.name} (ID: ${release.id})`);
+
+              // 删除Release
+              await github.rest.repos.deleteRelease({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                release_id: release.id
+              });
+
+              // 尝试删除关联的Git标签
+              if (release.tag_name) {
+                try {
+                  await github.rest.git.deleteRef({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    ref: `tags/${release.tag_name}`
+                  });
+                  console.log(`✅ Deleted tag: ${release.tag_name}`);
+                } catch (tagError) {
+                  console.log(`⚠️ Failed to delete tag ${release.tag_name}: ${tagError.message}`);
+                }
+              }
+            }
+            console.log(`🎉 Cleanup complete. Kept latest ${env.KEEP} releases.`);
+          } catch (error) {
+            console.error('❌ Cleanup failed:', error);
+            core.setFailed(error.message);
+          }
