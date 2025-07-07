@@ -22,3 +22,10 @@ sed -i 's/192.168.1.1/192.168.0.1/g' package/base-files/files/bin/config_generat
 
 # Modify hostname
 #sed -i 's/OpenWrt/P3TERX-Router/g' package/base-files/files/bin/config_generate
+
+# 添加 BBR 优化 sysctl 配置文件
+mkdir -p package/base-files/files/etc/sysctl.d
+cat << 'EOF' > package/base-files/files/etc/sysctl.d/99-bbr.conf
+net.core.default_qdisc = fq
+net.ipv4.tcp_congestion_control = bbr
+EOF
